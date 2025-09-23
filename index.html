@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusShare - Final Prototype</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+    <style>
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        .view { display: none; }
+        .active-view { display: block; }
+        .modal-overlay { position: fixed; inset: 0; background-color: rgba(17, 24, 39, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 1rem; z-index: 50; opacity: 0; visibility: hidden; transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-container { transform: scale(0.95); transition: transform 0.3s ease-in-out; }
+        .modal-overlay.active .modal-container { transform: scale(1); }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in-up { animation: fadeInUp 0.5s ease-in-out; }
+        .toast-container { position: fixed; bottom: 1.25rem; right: 1.25rem; background-color: #1f2937; color: white; padding: 0.75rem 1.25rem; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); opacity: 0; transform: translateY(20px); visibility: hidden; transition: all 0.4s cubic-bezier(0.215, 0.610, 0.355, 1); z-index: 100; }
+        .toast-container.show { opacity: 1; transform: translateY(0); visibility: visible; }
+        .toast-container.error { background-color: #dc2626; }
+        .spinner { width: 56px; height: 56px; border: 8px solid #f3f4f6; border-top-color: #14b8a6; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .card-hover:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- App Container -->
+    <div id="app-container" class="max-w-7xl mx-auto p-4">
+
+        <!-- AUTH VIEW -->
+        <div id="auth-view" class="view">
+            <div class="min-h-screen flex items-center justify-center">
+                <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md animate-fade-in-up">
+                    <h2 id="auth-title" class="text-3xl font-bold text-center text-gray-800 mb-2">Welcome Back!</h2>
+                    <p id="auth-subtitle" class="text-center text-gray-500 mb-8">Login to continue to CampusShare</p>
+                    <form id="auth-form">
+                        <div id="name-field" class="mb-4 hidden">
+                            <label for="name" class="block text-sm font-semibold text-gray-700">Full Name</label>
+                            <input type="text" id="name" name="name" class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg">
+                        </div>
+                        <div class="mb-4">
+                            <label for="email" class="block text-sm font-semibold text-gray-700">Email Address</label>
+                            <input type="email" id="email" name="email" required class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg">
+                        </div>
+                        <div class="mb-6">
+                            <label for="password" class="block text-sm font-semibold text-gray-700">Password</label>
+                            <input type="password" id="password" name="password" required class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg">
+                        </div>
+                        <button id="auth-submit-btn" type="submit" class="w-full bg-teal-600 text-white py-3 rounded-lg font-semibold hover:bg-teal-700">Login</button>
+                    </form>
+                    <div id="auth-feedback" class="text-red-500 text-sm font-semibold text-center mt-4 h-5"></div>
+                    <p class="text-sm text-center mt-4">
+                        <span id="auth-prompt-text">Don't have an account?</span>
+                        <button id="switch-auth-btn" class="font-medium text-teal-600 hover:text-teal-500">Sign Up</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN VIEW -->
+        <div id="main-view" class="view">
+            <header class="bg-white shadow-lg rounded-2xl p-4 mb-6 flex justify-between items-center sticky top-4 z-30">
+                <h1 class="text-3xl font-bold text-teal-600">CampusShare</h1>
+                <div class="flex items-center space-x-4">
+                    <span id="user-greeting" class="font-semibold hidden md:block"></span>
+                    <button id="notifications-btn" class="relative p-2 hover:bg-gray-200 rounded-full transition">
+                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        <span id="notification-badge" class="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center hidden"></span>
+                    </button>
+                    <button id="dashboard-btn" class="px-4 py-2 bg-gray-200 rounded-lg font-semibold hover:bg-gray-300 transition hidden md:block">Dashboard</button>
+                    <button id="logout-btn" class="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition">Logout</button>
+                </div>
+            </header>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-700">Available Resources</h2>
+                <button id="add-resource-btn" class="bg-teal-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-teal-700">Share a Resource</button>
+            </div>
+            <div id="resource-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+        </div>
+        
+        <!-- DASHBOARD VIEW -->
+        <div id="dashboard-view" class="view">
+             <header class="bg-white shadow-lg rounded-2xl p-4 mb-6 flex justify-between items-center sticky top-4 z-30">
+                <h1 class="text-3xl font-bold text-teal-600">My Dashboard</h1>
+                <button id="back-to-main-btn" class="px-4 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700">Back to Resources</button>
+            </header>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-700 mb-4">My Shared Items</h2>
+                    <div id="my-items-list" class="space-y-4"></div>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-700 mb-4">My Borrowed Items</h2>
+                    <div id="borrowed-items-list" class="space-y-4"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NOTIFICATIONS VIEW -->
+        <div id="notifications-view" class="view">
+             <header class="bg-white shadow-lg rounded-2xl p-4 mb-6 flex justify-between items-center sticky top-4 z-30">
+                <h1 class="text-3xl font-bold text-teal-600">Notifications</h1>
+                <button id="back-to-main-from-notifs-btn" class="px-4 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700">Back to Resources</button>
+            </header>
+            <div id="notifications-list" class="bg-white p-6 rounded-2xl shadow-lg"></div>
+        </div>
+    </div>
+
+    <!-- MODALS & OVERLAYS -->
+    <div id="resource-modal" class="modal-overlay">
+        <div class="modal-container bg-white p-8 rounded-2xl shadow-2xl w-full max-w-lg">
+            <h2 id="resource-modal-title" class="text-2xl font-bold mb-6">Share a New Resource</h2>
+            <form id="resource-form">
+                <div class="mb-4">
+                    <label for="resource-name" class="block text-sm font-semibold text-gray-700">Resource Name</label>
+                    <input type="text" id="resource-name" name="name" required class="mt-1 w-full p-3 border border-gray-300 rounded-lg">
+                </div>
+                <div class="mb-4">
+                    <label for="resource-category" class="block text-sm font-semibold text-gray-700">Category</label>
+                    <select id="resource-category" name="category" required class="mt-1 w-full p-3 border border-gray-300 rounded-lg bg-white">
+                        <option>Lab Kit</option> <option>Textbook</option> <option>Electronics</option>
+                        <option>PDF</option> <option>Study Notes</option> <option>Other</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="resource-description" class="block text-sm font-semibold text-gray-700">Description</label>
+                    <textarea id="resource-description" name="description" rows="3" required class="mt-1 w-full p-3 border border-gray-300 rounded-lg"></textarea>
+                </div>
+                <div class="mb-6">
+                    <label for="resource-file" class="block text-sm font-semibold text-gray-700">Upload File (Image, PDF, DOC, etc.)</label>
+                    <input type="file" id="resource-file" name="file" required class="mt-1 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer">
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancel-resource-btn" class="px-5 py-2 bg-gray-200 rounded-lg font-semibold hover:bg-gray-300">Cancel</button>
+                    <button type="submit" id="submit-resource-btn" class="px-5 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700">Share Item</button>
+                </div>
+                <div id="resource-feedback" class="text-center font-semibold text-red-500 mt-4 h-5"></div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="toast" class="toast-container"><span id="toast-message"></span></div>
+    <div id="loader" class="modal-overlay"><div class="spinner"></div></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const API_URL = 'http://127.0.0.1:5000';
+            const appState = { isLoggedIn: false, currentUser: null, currentView: 'auth' };
+
+            const DOM = {
+                views: { auth: document.getElementById('auth-view'), main: document.getElementById('main-view'), dashboard: document.getElementById('dashboard-view'), notifications: document.getElementById('notifications-view') },
+                auth: { form: document.getElementById('auth-form'), nameField: document.getElementById('name-field'), feedback: document.getElementById('auth-feedback'), switchBtn: document.getElementById('switch-auth-btn'), title: document.getElementById('auth-title'), subtitle: document.getElementById('auth-subtitle'), promptText: document.getElementById('auth-prompt-text'), submitBtn: document.getElementById('auth-submit-btn') },
+                header: { userGreeting: document.getElementById('user-greeting'), logoutBtn: document.getElementById('logout-btn'), dashboardBtn: document.getElementById('dashboard-btn'), notificationsBtn: document.getElementById('notifications-btn'), notificationBadge: document.getElementById('notification-badge') },
+                main: { addResourceBtn: document.getElementById('add-resource-btn'), resourceGrid: document.getElementById('resource-grid') },
+                dashboard: { backToMainBtn: document.getElementById('back-to-main-btn'), myItemsList: document.getElementById('my-items-list'), borrowedItemsList: document.getElementById('borrowed-items-list') },
+                notifications: { list: document.getElementById('notifications-list'), backToMainBtn: document.getElementById('back-to-main-from-notifs-btn') },
+                resourceModal: { modal: document.getElementById('resource-modal'), form: document.getElementById('resource-form'), cancelBtn: document.getElementById('cancel-resource-btn'), submitBtn: document.getElementById('submit-resource-btn'), feedback: document.getElementById('resource-feedback') },
+                toast: { element: document.getElementById('toast'), message: document.getElementById('toast-message') },
+                loader: document.getElementById('loader'),
+            };
+
+            let isLoginMode = true;
+
+            async function apiRequest(endpoint, method = 'GET', body = null) {
+                showLoader();
+                const options = { method, headers: {} };
+                if (body) {
+                    if (body instanceof FormData) { options.body = body; } 
+                    else { options.headers['Content-Type'] = 'application/json'; options.body = JSON.stringify(body); }
+                }
+                try {
+                    const response = await fetch(`${API_URL}${endpoint}`, options);
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({ error: `HTTP error! Status: ${response.status}` }));
+                        throw new Error(errorData.error);
+                    }
+                    // Handle cases where the response might not have a JSON body (like a 201 Created)
+                    const contentType = response.headers.get("content-type");
+                    if (contentType && contentType.indexOf("application/json") !== -1) {
+                        return await response.json();
+                    } else {
+                        return { success: true, message: "Operation successful" }; // Or handle as needed
+                    }
+                } catch (error) {
+                    console.error(`API Error:`, error);
+                    let errorMessage = error.message.includes('Failed to fetch') 
+                        ? 'Connection Error: Could not reach the server. Is it running?'
+                        : error.message;
+                    showToast(errorMessage, 'error');
+                    throw error;
+                } finally {
+                    hideLoader();
+                }
+            }
+
+            function showToast(message, type = 'success') {
+                DOM.toast.message.textContent = message;
+                DOM.toast.element.className = `toast-container ${type === 'error' ? 'error' : ''} show`;
+                setTimeout(() => DOM.toast.element.classList.remove('show'), 3000);
+            }
+
+            function showLoader() { DOM.loader.classList.add('active'); }
+            function hideLoader() { DOM.loader.classList.remove('active'); }
+
+            function switchView(viewName) {
+                appState.currentView = viewName;
+                Object.values(DOM.views).forEach(v => v.classList.remove('active-view'));
+                DOM.views[viewName].classList.add('active-view');
+            }
+
+            function renderResourceCard(resource) {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow-lg overflow-hidden flex flex-col card-hover animate-fade-in-up';
+
+                const openURL = `${API_URL}/uploads/${resource.file}`;
+                const downloadURL = `${API_URL}/api/resources/${resource.file}/download`;
+
+                let borrowButtonHTML = '';
+                if (resource.owner_id !== appState.currentUser.id) {
+                     if (resource.status === 'available') {
+                        borrowButtonHTML = `<button data-id="${resource.id}" class="request-btn mt-2 w-full text-center font-semibold py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 transition">Request Physical Item</button>`;
+                     } else {
+                        const statusText = resource.borrower_id === appState.currentUser.id ? 'On Loan to You' : 'On Loan';
+                        const bgColor = resource.borrower_id === appState.currentUser.id ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800';
+                        borrowButtonHTML = `<div class="mt-2 w-full text-center font-semibold py-2 rounded-lg ${bgColor}">${statusText}</div>`;
+                     }
+                }
+                
+                const fileExtension = resource.original_filename.split('.').pop().toLowerCase();
+                let imageHTML = '';
+                if (['png', 'jpg', 'jpeg', 'gif'].includes(fileExtension)) {
+                    imageHTML = `<img src="${openURL}" alt="${resource.name}" class="w-full h-48 object-cover">`;
+                } else {
+                    imageHTML = `<div class="w-full h-48 bg-gray-200 flex flex-col items-center justify-center p-4">
+                        <svg class="w-16 h-16 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <span class="mt-2 text-sm font-semibold text-gray-700 break-all text-center">${resource.original_filename}</span>
+                    </div>`;
+                }
+
+                card.innerHTML = `
+                    ${imageHTML}
+                    <div class="p-4 flex flex-col flex-grow">
+                        <span class="text-sm text-gray-500 font-medium">${resource.category}</span>
+                        <h3 class="text-lg font-bold text-gray-800 mt-1">${resource.name}</h3>
+                        <p class="text-sm text-gray-600 mt-2 flex-grow">${resource.description}</p>
+                        <div class="text-xs text-gray-500 mt-4">Shared by: <span class="font-semibold">${resource.owner_name}</span></div>
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                             <div class="flex space-x-2">
+                                <a href="${openURL}" target="_blank" class="flex-1 text-center bg-teal-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-teal-600 transition">Open File</a>
+                                <a href="${downloadURL}" class="flex-1 text-center bg-gray-700 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-800 transition">Download</a>
+                            </div>
+                            ${borrowButtonHTML}
+                        </div>
+                    </div>`;
+                DOM.main.resourceGrid.appendChild(card);
+            }
+
+            function renderDashboardItem(item, listElement) {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'bg-white p-4 rounded-lg shadow-md flex justify-between items-center';
+                let statusHTML = '';
+                if (listElement === DOM.dashboard.myItemsList) {
+                    statusHTML = `<span class="text-sm font-semibold ${item.status === 'available' ? 'text-green-600' : 'text-yellow-600'}">${item.status === 'available' ? 'Available' : `On loan to ${item.borrower_name}`}</span>`;
+                } else {
+                    statusHTML = `<span class="text-sm text-gray-600">Lender: ${item.owner_name}</span>`;
+                }
+                itemDiv.innerHTML = `<div><h4 class="font-bold text-lg">${item.name}</h4><p class="text-sm text-gray-500">${item.category}</p></div>${statusHTML}`;
+                listElement.appendChild(itemDiv);
+            }
+
+            function renderNotificationItem(notification) {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'p-4 border-b border-gray-200 flex justify-between items-center';
+                const isActionable = notification.status === 'pending';
+                const buttonHTML = isActionable ? `<div class="flex space-x-2"><button data-id="${notification.id}" data-action="approved" class="approve-btn px-3 py-1 bg-green-500 text-white text-sm rounded-md">Approve</button><button data-id="${notification.id}" data-action="denied" class="deny-btn px-3 py-1 bg-red-500 text-white text-sm rounded-md">Deny</button></div>` : `<span class="text-sm font-semibold text-gray-500 capitalize">${notification.status}</span>`;
+                itemDiv.innerHTML = `<div><p><span class="font-bold">${notification.requester_name}</span> wants to borrow your item: <span class="font-bold">${notification.resource_name}</span>.</p><p class="text-xs text-gray-500">${new Date(notification.timestamp * 1000).toLocaleString()}</p></div>${buttonHTML}`;
+                DOM.notifications.list.appendChild(itemDiv);
+            }
+
+            function updateUIBasedOnState() {
+                if (appState.isLoggedIn) {
+                    DOM.header.userGreeting.textContent = `Hello, ${appState.currentUser.name}`;
+                    if (appState.currentView === 'auth') { loadMainView(); }
+                } else { switchView('auth'); }
+            }
+            
+            async function loadMainView() {
+                switchView('main');
+                DOM.main.resourceGrid.innerHTML = '';
+                try {
+                    const resources = await apiRequest('/api/resources');
+                    if (resources.length > 0) { resources.forEach(renderResourceCard); } 
+                    else { DOM.main.resourceGrid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-16">No resources have been shared yet. Be the first!</p>'; }
+                    await fetchNotifications();
+                } catch (error) { DOM.main.resourceGrid.innerHTML = '<p class="col-span-full text-center text-red-500 bg-red-100 p-6 rounded-lg font-semibold">Could not load resources. Please ensure the backend server is running and refresh the page.</p>'; }
+            }
+            
+            async function loadDashboardView() {
+                switchView('dashboard');
+                DOM.dashboard.myItemsList.innerHTML = '<p>Loading...</p>';
+                DOM.dashboard.borrowedItemsList.innerHTML = '<p>Loading...</p>';
+                try {
+                    const data = await apiRequest(`/api/users/${appState.currentUser.id}/dashboard`);
+                    DOM.dashboard.myItemsList.innerHTML = data.owned_items.length ? '' : '<p>You have not shared any items.</p>';
+                    data.owned_items.forEach(item => renderDashboardItem(item, DOM.dashboard.myItemsList));
+                    DOM.dashboard.borrowedItemsList.innerHTML = data.borrowed_items.length ? '' : '<p>You have not borrowed any items.</p>';
+                    data.borrowed_items.forEach(item => renderDashboardItem(item, DOM.dashboard.borrowedItemsList));
+                } catch (error) { DOM.dashboard.myItemsList.innerHTML = '<p class="text-red-500">Could not load dashboard data.</p>'; }
+            }
+            
+            async function fetchNotifications() {
+                if (!appState.isLoggedIn) return [];
+                try {
+                    const notifications = await apiRequest(`/api/users/${appState.currentUser.id}/notifications`);
+                    const pendingCount = notifications.filter(n => n.status === 'pending').length;
+                    DOM.header.notificationBadge.textContent = pendingCount;
+                    DOM.header.notificationBadge.classList.toggle('hidden', pendingCount === 0);
+                    return notifications;
+                } catch (error) { DOM.header.notificationBadge.classList.add('hidden'); return []; }
+            }
+            
+            async function loadNotificationsView() {
+                switchView('notifications');
+                DOM.notifications.list.innerHTML = '<p>Loading...</p>';
+                try {
+                    const notifications = await fetchNotifications();
+                    DOM.notifications.list.innerHTML = notifications.length ? '' : '<p class="text-center text-gray-500 p-8">You have no notifications.</p>';
+                    notifications.forEach(renderNotificationItem);
+                } catch (error) { DOM.notifications.list.innerHTML = '<p class="text-red-500">Could not load notifications.</p>'; }
+            }
+
+            function toggleAuthMode() {
+                isLoginMode = !isLoginMode;
+                DOM.auth.form.reset(); DOM.auth.feedback.textContent = '';
+                DOM.auth.title.textContent = isLoginMode ? 'Welcome Back!' : 'Create an Account';
+                DOM.auth.subtitle.textContent = isLoginMode ? 'Login to continue to CampusShare' : 'Join the community by creating an account';
+                DOM.auth.nameField.classList.toggle('hidden', isLoginMode);
+                DOM.auth.submitBtn.textContent = isLoginMode ? 'Login' : 'Create Account';
+                DOM.auth.promptText.textContent = isLoginMode ? "Don't have an account?" : "Already have an account?";
+                DOM.auth.switchBtn.textContent = isLoginMode ? 'Sign Up' : 'Login';
+            }
+            
+            function logout() {
+                appState.isLoggedIn = false; appState.currentUser = null;
+                localStorage.removeItem('campusShareUser');
+                showToast("You have been logged out."); updateUIBasedOnState();
+            }
+
+            function init() {
+                const savedUser = localStorage.getItem('campusShareUser');
+                if (savedUser) { appState.isLoggedIn = true; appState.currentUser = JSON.parse(savedUser); }
+                updateUIBasedOnState();
+            }
+
+            DOM.auth.switchBtn.addEventListener('click', toggleAuthMode);
+            DOM.auth.form.addEventListener('submit', async e => {
+                e.preventDefault();
+                const data = Object.fromEntries(new FormData(DOM.auth.form).entries());
+                const endpoint = isLoginMode ? '/api/login' : '/api/register';
+                DOM.auth.feedback.textContent = '';
+                try {
+                    const result = await apiRequest(endpoint, 'POST', data);
+                    appState.isLoggedIn = true; appState.currentUser = result.user;
+                    localStorage.setItem('campusShareUser', JSON.stringify(result.user));
+                    showToast(result.message); updateUIBasedOnState();
+                } catch (error) { DOM.auth.feedback.textContent = error.message; }
+            });
+            
+            DOM.header.logoutBtn.addEventListener('click', logout);
+            DOM.header.dashboardBtn.addEventListener('click', loadDashboardView);
+            DOM.header.notificationsBtn.addEventListener('click', loadNotificationsView);
+            DOM.dashboard.backToMainBtn.addEventListener('click', loadMainView);
+            DOM.notifications.backToMainBtn.addEventListener('click', loadMainView);
+
+            DOM.main.addResourceBtn.addEventListener('click', () => DOM.resourceModal.modal.classList.add('active'));
+            DOM.resourceModal.cancelBtn.addEventListener('click', () => DOM.resourceModal.modal.classList.remove('active'));
+            DOM.resourceModal.form.addEventListener('submit', async e => {
+                e.preventDefault();
+                const formData = new FormData(DOM.resourceModal.form);
+                formData.append('owner_id', appState.currentUser.id);
+                DOM.resourceModal.submitBtn.disabled = true; DOM.resourceModal.submitBtn.textContent = 'Sharing...';
+                DOM.resourceModal.feedback.textContent = '';
+                try {
+                    await apiRequest('/api/resources', 'POST', formData);
+                    showToast("Resource shared successfully!");
+                    DOM.resourceModal.modal.classList.remove('active');
+                    DOM.resourceModal.form.reset(); 
+                    await loadMainView();
+                } catch (error) { DOM.resourceModal.feedback.textContent = error.message; } 
+                finally { DOM.resourceModal.submitBtn.disabled = false; DOM.resourceModal.submitBtn.textContent = 'Share Item'; }
+            });
+
+            DOM.main.resourceGrid.addEventListener('click', async e => {
+                if (e.target.classList.contains('request-btn')) {
+                    const resourceId = e.target.dataset.id;
+                    try {
+                        const result = await apiRequest(`/api/resources/${resourceId}/request`, 'POST', { requester_id: appState.currentUser.id });
+                        showToast(result.message); await loadMainView();
+                    } catch (error) { /* Handled by apiRequest */ }
+                }
+            });
+            
+            DOM.notifications.list.addEventListener('click', async e => {
+               if (e.target.matches('.approve-btn, .deny-btn')) {
+                   const notifId = e.target.dataset.id;
+                   const action = e.target.dataset.action;
+                   try {
+                       const result = await apiRequest(`/api/notifications/${notifId}/respond`, 'POST', { action });
+                       showToast(result.message); await loadNotificationsView();
+                   } catch(error) { /* Handled by apiRequest */ }
+               }
+            });
+
+            init();
+        });
+    </script>
+</body>
+</html>
+
