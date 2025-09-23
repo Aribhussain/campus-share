@@ -12,9 +12,9 @@
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
 </head>
-<body>
+<body class="bg-gray-100">
 
-    <div id="app-container" class="max-w-7xl mx-auto p-4">
+    <div id="app-container" class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
 
         <div id="auth-view" class="view">
             <div class="min-h-screen flex items-center justify-center">
@@ -24,17 +24,17 @@
                     <form id="auth-form">
                         <div id="name-field" class="mb-4 hidden">
                             <label for="name" class="block text-sm font-semibold text-gray-700">Full Name</label>
-                            <input type="text" id="name" name="name" class="input-field">
+                            <input type="text" id="name" name="name" class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg">
                         </div>
                         <div class="mb-4">
                             <label for="email" class="block text-sm font-semibold text-gray-700">Email Address</label>
-                            <input type="email" id="email" name="email" required class="input-field">
+                            <input type="email" id="email" name="email" required class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg">
                         </div>
                         <div class="mb-6">
                             <label for="password" class="block text-sm font-semibold text-gray-700">Password</label>
-                            <input type="password" id="password" name="password" required class="input-field">
+                            <input type="password" id="password" name="password" required class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg">
                         </div>
-                        <button id="auth-submit-btn" type="submit" class="button-primary w-full">Login</button>
+                        <button id="auth-submit-btn" type="submit" class="w-full bg-teal-600 text-white py-3 rounded-lg font-semibold hover:bg-teal-700">Login</button>
                     </form>
                     <div id="auth-feedback" class="text-red-500 text-sm font-semibold text-center mt-4 h-5"></div>
                     <p class="text-sm text-center mt-4">
@@ -46,29 +46,29 @@
         </div>
 
         <div id="main-view" class="view">
-            <header class="header-main">
+            <header class="bg-white shadow-lg rounded-2xl p-4 mb-6 flex justify-between items-center sticky top-4 z-30">
                 <h1 class="text-3xl font-bold text-teal-600">CampusShare</h1>
                 <div class="flex items-center space-x-4">
                     <span id="user-greeting" class="font-semibold hidden md:block"></span>
-                    <button id="notifications-btn" class="button-icon">
+                    <button id="notifications-btn" class="relative p-2 hover:bg-gray-200 rounded-full transition">
                         <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                        <span id="notification-badge" class="notification-badge hidden"></span>
+                        <span id="notification-badge" class="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center hidden"></span>
                     </button>
-                    <button id="dashboard-btn" class="button-secondary hidden md:block">Dashboard</button>
-                    <button id="logout-btn" class="button-danger">Logout</button>
+                    <button id="dashboard-btn" class="px-4 py-2 bg-gray-200 rounded-lg font-semibold hover:bg-gray-300 transition hidden md:block">Dashboard</button>
+                    <button id="logout-btn" class="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition">Logout</button>
                 </div>
             </header>
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold text-gray-700">Available Resources</h2>
-                <button id="add-resource-btn" class="button-primary">Share a Resource</button>
+                <button id="add-resource-btn" class="bg-teal-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-teal-700">Share a Resource</button>
             </div>
             <div id="resource-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
         </div>
         
         <div id="dashboard-view" class="view">
-             <header class="header-main">
+             <header class="bg-white shadow-lg rounded-2xl p-4 mb-6 flex justify-between items-center sticky top-4 z-30">
                 <h1 class="text-3xl font-bold text-teal-600">My Dashboard</h1>
-                <button id="back-to-main-btn" class="button-primary">Back to Resources</button>
+                <button id="back-to-main-btn" class="px-4 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700">Back to Resources</button>
             </header>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
@@ -83,9 +83,9 @@
         </div>
 
         <div id="notifications-view" class="view">
-             <header class="header-main">
+             <header class="bg-white shadow-lg rounded-2xl p-4 mb-6 flex justify-between items-center sticky top-4 z-30">
                 <h1 class="text-3xl font-bold text-teal-600">Notifications</h1>
-                <button id="back-to-main-from-notifs-btn" class="button-primary">Back to Resources</button>
+                <button id="back-to-main-from-notifs-btn" class="px-4 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700">Back to Resources</button>
             </header>
             <div id="notifications-list" class="bg-white p-6 rounded-2xl shadow-lg"></div>
         </div>
@@ -96,27 +96,27 @@
             <h2 id="resource-modal-title" class="text-2xl font-bold mb-6">Share a New Resource</h2>
             <form id="resource-form">
                 <div class="mb-4">
-                    <label for="resource-name" class="label-form">Resource Name</label>
-                    <input type="text" id="resource-name" name="name" required class="input-field">
+                    <label for="resource-name" class="block text-sm font-semibold text-gray-700">Resource Name</label>
+                    <input type="text" id="resource-name" name="name" required class="mt-1 w-full p-3 border border-gray-300 rounded-lg">
                 </div>
                 <div class="mb-4">
-                    <label for="resource-category" class="label-form">Category</label>
-                    <select id="resource-category" name="category" required class="input-field bg-white">
+                    <label for="resource-category" class="block text-sm font-semibold text-gray-700">Category</label>
+                    <select id="resource-category" name="category" required class="mt-1 w-full p-3 border border-gray-300 rounded-lg bg-white">
                         <option>Lab Kit</option> <option>Textbook</option> <option>Electronics</option>
                         <option>PDF</option> <option>Study Notes</option> <option>Other</option>
                     </select>
                 </div>
                 <div class="mb-4">
-                    <label for="resource-description" class="label-form">Description</label>
-                    <textarea id="resource-description" name="description" rows="3" required class="input-field"></textarea>
+                    <label for="resource-description" class="block text-sm font-semibold text-gray-700">Description</label>
+                    <textarea id="resource-description" name="description" rows="3" required class="mt-1 w-full p-3 border border-gray-300 rounded-lg"></textarea>
                 </div>
                 <div class="mb-6">
-                    <label for="resource-file" class="label-form">Upload File (Image, PDF, DOC, etc.)</label>
-                    <input type="file" id="resource-file" name="file" required class="input-file">
+                    <label for="resource-file" class="block text-sm font-semibold text-gray-700">Upload File (Image, PDF, DOC, etc.)</label>
+                    <input type="file" id="resource-file" name="file" required class="mt-1 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer">
                 </div>
                 <div class="flex justify-end space-x-4">
-                    <button type="button" id="cancel-resource-btn" class="button-secondary">Cancel</button>
-                    <button type="submit" id="submit-resource-btn" class="button-primary">Share Item</button>
+                    <button type="button" id="cancel-resource-btn" class="px-5 py-2 bg-gray-200 rounded-lg font-semibold hover:bg-gray-300">Cancel</button>
+                    <button type="submit" id="submit-resource-btn" class="px-5 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700">Share Item</button>
                 </div>
                 <div id="resource-feedback" class="text-center font-semibold text-red-500 mt-4 h-5"></div>
             </form>
@@ -126,6 +126,8 @@
     <div id="toast" class="toast-container"><span id="toast-message"></span></div>
     <div id="loader" class="modal-overlay"><div class="spinner"></div></div>
 
-    <script defer src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
+
+

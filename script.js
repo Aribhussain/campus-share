@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span class="mt-2 text-sm font-semibold text-gray-700 break-all text-center">${resource.original_filename}</span>
             </div>`;
         }
-
+        
         card.innerHTML = `
         ${imageHTML}
         <div class="p-4 flex flex-col flex-grow">
@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>`;
         DOM.main.resourceGrid.appendChild(card);
     }
-
+    
     function renderDashboardItem(item, listElement) {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'bg-white p-4 rounded-lg shadow-md flex justify-between items-center';
